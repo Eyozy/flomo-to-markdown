@@ -17,8 +17,6 @@
 
 ## 🚀 快速上手
 
-只需三步，即可完成您的笔记转换。
-
 ### 1. 环境准备
 
 确保您的电脑已安装 **Python 3.6** 或更高版本。在终端或命令行中运行以下命令进行检查：
@@ -42,13 +40,20 @@ cd flomo-to-markdown
 
 然后，进入项目目录，使用 `pip` 安装所需的依赖库：
 
+**CLI 版本（本地运行）**：
+```bash
+pip install -r requirements-cli.txt
+```
+
+**Web 版本（网页应用）**：
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 3. 运行转换
 
-一切就绪！在运行脚本前，请按下图所示准备您的文件：
+**CLI 版本**：
+在运行脚本前，请按下图所示准备您的文件：
 
 ```plaintext
 flomo-to-markdown/      <-- 项目根目录
@@ -65,6 +70,9 @@ python flomo_converter.py
 ```
 
 转换完成后，您将在 `converted_notes` 文件夹中找到成果！
+
+**Web 版本**：
+本地运行：`python app.py`（访问 http://127.0.0.1:5001），上传 HTML/HTM 或 ZIP 文件进行转换并下载。
 
 ## ⚙️ 自定义配置
 
