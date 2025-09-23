@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/downloads/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-一个专为 [Flomo](https://flomoapp.com/) 用户设计的简洁、强大的笔记转换工具。它能将您导出的 HTML 文件连同所有图片，一键转换为一个按时间倒序排列、结构清晰的 Markdown 文件，方便您进行本地归档、二次编辑或迁移到其他平台。
+一个专为 [Flomo](https://flomoapp.com/) 用户设计的简洁、强大的笔记转换工具。它能将你导出的 HTML 文件连同所有图片，一键转换为一个按时间倒序排列、结构清晰的 Markdown 文件，方便你进行本地归档、二次编辑或迁移到其他平台。
 
 在线演示：[Flomo to Markdown](https://flomo-to-markdown.vercel.app/)
 ---
@@ -20,7 +20,7 @@
 
 ### 1. 环境准备
 
-确保您的电脑已安装 **Python 3.6** 或更高版本。在终端或命令行中运行以下命令进行检查：
+确保你的电脑已安装 **Python 3.6** 或更高版本。在终端或命令行中运行以下命令进行检查：
 
 ```bash
 python --version
@@ -32,7 +32,7 @@ python3 --version
 
 ### 2. 下载并安装依赖
 
-首先，获取项目文件。您可以直接下载 ZIP 包，或使用 Git 克隆：
+首先，获取项目文件。你可以直接下载 ZIP 包，或使用 Git 克隆：
 
 ```bash
 git clone https://github.com/Eyozy/flomo-to-markdown.git
@@ -54,11 +54,11 @@ pip install -r requirements.txt
 ### 3. 运行转换
 
 **CLI 版本**：
-在运行脚本前，请按下图所示准备您的文件：
+在运行脚本前，请按下图所示准备你的文件：
 
 ```plaintext
 flomo-to-markdown/      <-- 项目根目录
-├── flomo/              <-- 您的 Flomo 笔记文件夹 (默认源目录)
+├── flomo/              <-- 你的 Flomo 笔记文件夹 (默认源目录)
 │   ├── 你的笔记.html    <-- 导出的 HTML 文件
 │   └── file/           <-- 导出的图片文件夹
 └── flomo_converter.py  <-- 转换脚本
@@ -70,7 +70,7 @@ flomo-to-markdown/      <-- 项目根目录
 python flomo_converter.py
 ```
 
-转换完成后，您将在 `converted_notes` 文件夹中找到成果！
+转换完成后，你将在 `converted_notes` 文件夹中找到成果！
 
 **Web 版本**：
 本地运行：`python app.py`（访问 http://127.0.0.1:5001），上传 HTML/HTM 或 ZIP 文件进行转换并下载。
@@ -82,7 +82,7 @@ python flomo_converter.py
 ```python
 # --- 配置项 (Configuration) ---
 
-# 1. 源文件夹：存放您 Flomo 笔记的地方
+# 1. 源文件夹：存放你 Flomo 笔记的地方
 SOURCE_DIR = 'flomo'
 
 # 2. 输出文件夹：转换结果的存放位置
@@ -99,7 +99,7 @@ IMAGE_SUBDIR_NAME = 'flomo-images'
 
 **Q1: 我的 HTML 笔记文件名不是固定的，脚本能找到吗？**
 
-A: 可以。脚本会自动在 `flomo` 文件夹内查找第一个 `.html` 或 `.htm` 后缀的文件进行处理，所以您无需修改笔记文件名。
+A: 可以。脚本会自动在 `flomo` 文件夹内查找第一个 `.html` 或 `.htm` 后缀的文件进行处理，所以你无需修改笔记文件名。
 
 **Q2: 如果我的源文件夹里有多个 HTML 文件，会怎么样？**
 
@@ -111,8 +111,8 @@ A: 不会。脚本会智能检测是否存在图片，如果没有图片则会�
 
 **Q4: 为什么运行后 `flomo-images` 文件夹是空的？**
 
-A: 这通常意味着脚本在您的 HTML 文件中没有找到任何 `<img>` 标签，或者图片的路径不正确。请确认：
-1.  您的笔记中确实包含图片。
+A: 这通常意味着脚本在你的 HTML 文件中没有找到任何 `<img>` 标签，或者图片的路径不正确。请确认：
+1.  你的笔记中确实包含图片。
 2.  从 Flomo 导出的 `file` 文件夹已正确放置在源文件夹 (`flomo/`) 内。
 3.  脚本运行过程中没有出现 "图片文件未找到" 的警告信息。
 
@@ -130,13 +130,13 @@ A: 请优先检查以下两点：
 
 - 使用 [GitHub Issues](https://github.com/Eyozy/flomo-to-markdown/issues) 报告 Bug 或功能建议
 - 提供详细的问题描述和复现步骤
-- 包含您的操作系统和 Python 版本信息
+- 包含你的操作系统和 Python 版本信息
 
 ### 贡献代码
 
 1. Fork 本项目
-2. 创建您的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交你的更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启一个 Pull Request
 
