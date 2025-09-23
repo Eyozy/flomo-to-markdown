@@ -4,6 +4,7 @@
 
 一个专为 [Flomo](https://flomoapp.com/) 用户设计的简洁、强大的笔记转换工具。它能将您导出的 HTML 文件连同所有图片，一键转换为一个按时间倒序排列、结构清晰的 Markdown 文件，方便您进行本地归档、二次编辑或迁移到其他平台。
 
+在线演示：[Flomo to Markdown](https://flomo-to-markdown.vercel.app/)
 ---
 
 ## 🌟 核心功能
@@ -146,8 +147,13 @@ A: 请优先检查以下两点：
 git clone https://github.com/Eyozy/flomo-to-markdown.git
 cd flomo-to-markdown
 
-# 安装开发依赖
+# CLI 版本依赖
+pip install -r requirements-cli.txt
+
+# Web 版本依赖（包含 Flask 和静态文件支持）
 pip install -r requirements.txt
+
+# 注意：Web 开发需确保 static/ 文件夹存在（CSS/JS 资源）
 ```
 
 ## 📄 许可证
