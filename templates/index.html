@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flomo to Markdown</title>
-    <meta name="description" content="Flomo 笔记一键转 Markdown，支持 HTML/ZIP 上传，自动处理图片，免费在线工具，快速归档你的笔记！">
+    <title>flomo to Markdown</title>
+    <meta name="description" content="flomo 笔记一键转 Markdown，支持 HTML/ZIP 上传，自动处理图片，免费在线工具，快速归档你的笔记！">
     <meta name="keywords" content="flomo, markdown, 笔记转换, HTML to MD, 网页工具">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="Flomo to Markdown">
-    <meta property="og:description" content="Flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
+    <meta property="og:title" content="flomo to Markdown">
+    <meta property="og:description" content="flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://flomo-to-markdown.vercel.app/">
     <meta property="og:image" content="https://flomo-to-markdown.vercel.app/static/opengraph.png">
@@ -16,15 +16,15 @@
     <!-- X (Twitter) -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://flomo-to-markdown.vercel.app/">
-    <meta name="twitter:title" content="Flomo to Markdown">
-    <meta name="twitter:description" content="Flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
+    <meta name="twitter:title" content="flomo to Markdown">
+    <meta name="twitter:description" content="flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
     <meta name="twitter:image" content="https://flomo-to-markdown.vercel.app/static/opengraph.png">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Flomo to Markdown</h1>
+        <h1>flomo to Markdown</h1>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="alert">
@@ -32,7 +32,7 @@
                 </div>
             {% endif %}
         {% endwith %}
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="convert-form">
             <div class="upload-area" role="button">
                 <div class="upload-icon">📁</div>
                 <label for="file" class="upload-label" aria-label="选择文件">选择文件</label>
@@ -40,7 +40,30 @@
                 <div id="file-name" class="selected-file" style="display: none;"></div>
                 <input type="file" id="file" name="file" accept=".html,.htm,.zip" required>
             </div>
-            <button type="submit">转换并下载</button>
+            
+            <div id="loading-indicator" class="loading-text" style="display: none;">
+                <div class="loading-spinner"></div>
+                正在解析文件...
+            </div>
+            
+            <div id="error-message" class="error-message" style="display: none;">
+                <span class="error-icon">❌</span>
+                <span id="error-text">解析失败，请检查文件格式</span>
+            </div>
+            
+            <div id="success-message" class="success-message" style="display: none;">
+                <span class="success-icon">✅</span>
+                <span>文件解析成功！</span>
+            </div>
+            
+            <div id="year-selection" class="year-selection" style="display: none;">
+                <label for="year-filter" class="year-label">选择年份：</label>
+                <select id="year-filter" name="year_filter" class="year-dropdown">
+                    <option value="">正在解析...</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="convert-btn" disabled>转换并下载</button>
         </form>
         <hr>
         <div class="info-section">
