@@ -9,7 +9,7 @@ import glob
 # --- 配置项 (Configuration) ---
 # --- 请根据您的需求修改以下路径 ---
 
-# 1. 源文件夹：存放您从 Flomo 导出的 HTML 文件和 file 图片文件夹的地方。
+# 1. 源文件夹：存放您从 flomo 导出的 HTML 文件和 file 图片文件夹的地方。
 #    脚本会在此文件夹内查找 .html 文件进行转换。
 SOURCE_DIR = 'flomo'
 
@@ -25,7 +25,7 @@ IMAGE_SUBDIR_NAME = 'flomo-images'
 
 
 # --- HTML 解析规则 (Advanced Configuration) ---
-# --- 一般无需修改，除非 Flomo 的导出结构发生变化 ---
+# --- 一般无需修改，除非 flomo 的导出结构发生变化 ---
 HTML_CONFIG = {
     'note_container': 'div.memo',
     'date_element': 'div.time',
@@ -125,7 +125,7 @@ def parse_html_file(file_path, image_output_path):
 
 def main():
     """主函数，协调整个转换流程。"""
-    print("--- Flomo HTML to Markdown Converter ---")
+    print("--- flomo HTML to Markdown Converter ---")
     check_python_version()
 
     if not os.path.isdir(SOURCE_DIR):
