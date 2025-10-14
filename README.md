@@ -64,13 +64,49 @@ flomo-to-markdown/      <-- 项目根目录
 └── flomo_converter.py  <-- 转换脚本
 ```
 
-最后，在项目根目录运行脚本：
+#### 基础用法
 
 ```bash
+# 转换所有年份的笔记
 python flomo_converter.py
+
+# 转换特定年份的笔记
+python flomo_converter.py --year 2025
 ```
 
-转换完成后，你将在 `converted_notes` 文件夹中找到成果！
+#### 高级功能
+
+```bash
+# 查看可用年份
+python flomo_converter.py --list-years
+
+# 查看文件详细信息（包含各年份笔记统计）
+python flomo_converter.py --info
+
+# 交互式选择年份
+python flomo_converter.py --interactive
+
+# 查看所有可用参数和示例
+python flomo_converter.py --help
+```
+
+#### 使用示例
+
+```bash
+# 场景1：先查看有哪些年份，再转换特定年份
+python flomo_converter.py --list-years
+python flomo_converter.py --year 2025
+
+# 场景2：使用交互模式选择年份
+python flomo_converter.py --interactive
+# 然后输入数字选择年份
+
+# 场景3：查看文件详细信息
+python flomo_converter.py --info
+# 显示文件数量、年份范围、各年份笔记统计
+```
+
+转换完成后，你将在 `converted_notes` 文件夹中找到结果！
 
 **Web 版本**：
 本地运行：`python app.py`（访问 http://127.0.0.1:5001），上传 HTML/HTM 或 ZIP 文件进行转换并下载。
