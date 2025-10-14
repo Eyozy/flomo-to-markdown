@@ -281,27 +281,24 @@ def main():
     check_python_version()
 
     parser = argparse.ArgumentParser(
-        description="Flomo HTML to Markdown Converter CLI",
+        description="flomo HTML to Markdown CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使用示例：
   # 转换所有年份的笔记
-  python3 flomo_converter.py
+  python flomo_converter.py
   
   # 转换特定年份的笔记
-  python3 flomo_converter.py --year 2023
+  python flomo_converter.py --year 2025
   
   # 查看可用年份
-  python3 flomo_converter.py --list-years
+  python flomo_converter.py --list-years
   
   # 查看文件详细信息
-  python3 flomo_converter.py --info
+  python flomo_converter.py --info
   
   # 交互式选择年份
-  python3 flomo_converter.py --interactive
-  
-  # 指定源目录和输出目录
-  python3 flomo_converter.py --source ./flomo-export --output ./output --year 2022
+  python flomo_converter.py --interactive
         """
     )
     
@@ -310,7 +307,7 @@ def main():
     parser.add_argument('--output', type=str, default=OUTPUT_DIR,
                         help=f"输出文件夹：所有转换结果的存放位置 (默认：{OUTPUT_DIR})")
     parser.add_argument('--year', type=int,
-                        help="可选：只转换指定年份的笔记。例如：--year 2023")
+                        help="可选：只转换指定年份的笔记。例如：--year 2025")
     parser.add_argument('--list-years', action='store_true',
                         help="列出源文件中包含的所有年份")
     parser.add_argument('--info', action='store_true',
