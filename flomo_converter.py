@@ -13,16 +13,40 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 import glob
 
+# CLI 增强模块导入
+try:
+    from cli_utils import success, warning, error, info, highlight, show_progress, print_header, print_section, print_section_end, print_info_line, print_separator
+    from config_manager import load_config, get_config_value
+    CLI_ENHANCED = True
+except ImportError:
+    # 向后兼容：如果新模块不可用，使用基础功能
+    CLI_ENHANCED = False
+    def success(msg): print(f"✅ {msg}")
+    def warning(msg): print(f"⚠️  {msg}")
+    def error(msg): print(f"❌ {msg}")
+    def info(msg): print(f"ℹ️  {msg}")
+    def highlight(msg): print(msg); return msg
+    def show_progress(items, desc="处理中"): return items
+    def print_header(title): print("=" * 50); print(title); print("=" * 50)
+    def print_section(title): print(f"\n--- {title} ---")
+    def print_section_end(): print()
+    def print_info_line(label, value, color='info'): print(f"{label}: {value}")
+    def print_separator(char="─", length=60): print(char * length)
+
 # --- 配置项 (Configuration) ---
-# --- 请根据您的需求修改以下路径 ---
+# --- 支持配置文件，保持向后兼容 ---
 
-# 1. 源文件夹：存放您从 flomo 导出的 HTML 文件和 file 图片文件夹的地方。
-#    脚本会在此文件夹内查找 .html 文件进行转换。
-SOURCE_DIR = 'flomo'
+def load_application_config():
+    """加载应用配置，支持配置文件和默认值"""
+    if CLI_ENHANCED:
+        config = load_config()
+        return config['source_dir'], config['output_dir'], config['image_subdir_name']
+    else:
+        # 向后兼容：使用原有默认配置
+        return 'flomo', 'converted_notes', 'flomo-images'
 
-# 2. 输出文件夹：所有转换结果的存放位置。
-#    如果此文件夹不存在，脚本会自动创建。
-OUTPUT_DIR = 'converted_notes'
+# 动态加载配置
+SOURCE_DIR, OUTPUT_DIR, IMAGE_SUBDIR_NAME = load_application_config()
 
 # --- HTML 解析规则 (Advanced Configuration) ---
 # --- 一般无需修改，除非 flomo 的导出结构发生变化 ---
@@ -45,10 +69,10 @@ def create_output_directories(output_dir, image_subdir_name):
     try:
         image_path = os.path.join(output_dir, image_subdir_name)
         os.makedirs(image_path, exist_ok=True)
-        print(f"✅ 输出目录 '{output_dir}' 和图片目录 '{image_path}' 已准备就绪。")
+        success(f"输出目录 '{output_dir}' 和图片目录 '{image_path}' 已准备就绪。")
         return image_path
     except OSError as e:
-        print(f"❌ 错误：创建输出目录失败：{e}")
+        error(f"创建输出目录失败：{e}")
         sys.exit(1)
 
 def process_and_update_images_in_note(note_container, note_date_str, source_html_path, image_output_path, image_subdir_name):
@@ -66,9 +90,9 @@ def process_and_update_images_in_note(note_container, note_date_str, source_html
         source_image_path = os.path.normpath(os.path.join(html_file_directory, original_src))
 
         if not os.path.exists(source_image_path):
-            print(f"   - 警告：图片文件未找到 '{source_image_path}'，跳过。")
+            warning(f"图片文件未找到 '{source_image_path}'，跳过。")
             continue
-        
+
         original_filename = os.path.basename(source_image_path)
         date_prefix = note_date_str.replace(':', '-').replace(' ', '_')
         new_unique_filename = f"{date_prefix}_{original_filename}"
@@ -78,15 +102,15 @@ def process_and_update_images_in_note(note_container, note_date_str, source_html
             shutil.copy2(source_image_path, dest_image_path)
             new_src = f"{image_subdir_name}/{new_unique_filename}"
             img['src'] = new_src
-            print(f"   - 图片已处理：{original_filename} -> {new_unique_filename}")
+            print(f"│  图片已处理：{original_filename} -> {new_unique_filename}")
         except Exception as e:
-            print(f"   - 错误：处理图片 '{original_filename}' 时失败：{e}")
+            error(f"处理图片 '{original_filename}' 时失败：{e}")
             
     return note_container
 
 def parse_html_file(file_path, image_output_path, image_subdir_name, year_filter=None):
     """解析单个 HTML 文件，返回包含笔记信息的列表。"""
-    print(f"\n📄 正在解析文件：{file_path}...")
+    print(f"│  正在解析文件：{os.path.basename(file_path)}")
     parsed_notes = []
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -159,6 +183,16 @@ def contains_images(notes):
         if '![image]' in note['content'] or '<img' in note['content']: # 简单的图片检测
             return True
     return False
+
+def count_images_in_notes(notes):
+    """统计笔记中的图片数量"""
+    image_count = 0
+    for note in notes:
+        # 统计 markdown 格式的图片
+        image_count += note['content'].count('![')
+        # 统计 HTML 格式的图片
+        image_count += note['content'].count('<img')
+    return image_count
 
 def parse_html_file_for_years(file_path):
     """解析 HTML 文件，只提取年份信息"""
@@ -280,23 +314,29 @@ def main():
     """主函数，协调整个转换流程。"""
     check_python_version()
 
+    # 显示应用头部信息
+    if CLI_ENHANCED:
+        print_header("flomo to Markdown")
+    else:
+        print("--- flomo HTML to Markdown Converter ---")
+
     parser = argparse.ArgumentParser(
-        description="flomo HTML to Markdown CLI",
+        description="flomo HTML to Markdown CLI - 智能笔记转换工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-使用示例：
+🎯 使用示例：
   # 转换所有年份的笔记
   python flomo_converter.py
-  
+
   # 转换特定年份的笔记
   python flomo_converter.py --year 2025
-  
+
   # 查看可用年份
   python flomo_converter.py --list-years
-  
+
   # 查看文件详细信息
   python flomo_converter.py --info
-  
+
   # 交互式选择年份
   python flomo_converter.py --interactive
         """
@@ -323,38 +363,37 @@ def main():
 
     # 处理信息查询类参数
     if args.info:
-        print("--- flomo HTML to Markdown Converter ---")
-        print("📋 文件信息查询模式")
+        print_section("📋 文件信息查询")
         print_file_info(source_dir)
+        print_section_end()
         return
 
     if args.list_years:
-        print("--- flomo HTML to Markdown Converter ---")
-        print("📅 年份列表查询模式")
+        print_section("📅 年份列表查询")
         all_years = get_available_years(source_dir)
         if all_years:
-            print(f"✅ 找到以下年份：{', '.join(map(str, all_years))}")
+            print_info_line("可用年份", ", ".join(map(str, all_years)), 'success')
         else:
-            print("❌ 未找到任何有效的年份信息")
+            print_info_line("结果", "未找到任何有效的年份信息", 'warning')
+        print_section_end()
         return
 
     if args.interactive:
-        print("--- flomo HTML to Markdown Converter ---")
-        print("🎯 交互式模式")
+        print_section("🎯 交互式年份选择")
         year_filter = interactive_year_selection(source_dir)
         if year_filter is None:
-            print("✨ 正在转换所有年份的笔记...")
+            print_info_line("选择", "转换所有年份的笔记", 'info')
         else:
-            print(f"✨ 正在转换 {year_filter} 年的笔记...")
+            print_info_line("选择", f"转换 {year_filter} 年的笔记", 'info')
+        print_section_end()
     else:
-        print("--- flomo HTML to Markdown Converter ---")
         if year_filter:
-            print(f"✨ 正在转换 {year_filter} 年的笔记...")
+            print_info_line("模式", f"转换 {year_filter} 年的笔记", 'info')
         else:
-            print("✨ 正在转换所有年份的笔记...")
+            print_info_line("模式", "转换所有年份的笔记", 'info')
 
     if not os.path.isdir(source_dir):
-        print(f"❌ 错误：源文件夹 '{source_dir}' 不存在。请检查配置项并确保文件夹位置正确。")
+        error(f"源文件夹 '{source_dir}' 不存在。请检查配置项并确保文件夹位置正确。")
         return
 
     # 根据年份过滤调整文件和文件夹命名
@@ -377,49 +416,90 @@ def main():
     image_output_path = create_output_directories(output_dir, image_subdir_name)
     all_notes = []
     html_files = glob.glob(os.path.join(source_dir, '*.html')) + glob.glob(os.path.join(source_dir, '*.htm'))
-    
+
     if not html_files:
-        print(f"❌ 错误：在源文件夹 '{source_dir}' 中未找到任何 .html 或 .htm 文件。")
+        error(f"在源文件夹 '{source_dir}' 中未找到任何 .html 或 .htm 文件。")
         return
 
-    for file_path in html_files:
+    print_section("📄 文件解析")
+    print_info_line("源目录", source_dir)
+    print_info_line("找到文件", len(html_files))
+    print_info_line("输出目录", output_dir)
+
+    for file_path in show_progress(html_files, "解析文件"):
         notes_from_file = parse_html_file(file_path, image_output_path, image_subdir_name, year_filter)
         all_notes.extend(notes_from_file)
 
     if not all_notes:
-        print("\n🤔 未提取到任何有效笔记，程序结束。")
-        
+        warning("未提取到任何有效笔记，程序结束。")
+
         # 增强错误提示：如果指定了年份但未找到笔记，显示可用年份
         if year_filter is not None:
             all_years = get_available_years(source_dir)
             if all_years:
-                print(f"\n💡 提示：该文件包含以下年份：{', '.join(map(str, all_years))}")
-                print(f"💡 请使用 --year 参数指定存在的年份，或使用 --list-years 查看所有年份")
+                info(f"提示：该文件包含以下年份：{', '.join(map(str, all_years))}")
+                info("请使用 --year 参数指定存在的年份，或使用 --list-years 查看所有年份")
             else:
-                print(f"💡 提示：未检测到任何有效的年份信息，请检查文件格式是否正确")
-        
+                warning("未检测到任何有效的年份信息，请检查文件格式是否正确")
+
         # 如果没有笔记，且创建了空的图片目录，则删除
         if os.path.exists(image_output_path) and not os.listdir(image_output_path):
             shutil.rmtree(image_output_path)
-            print(f"已删除空的图片目录：{image_output_path}")
+            info(f"已删除空的图片目录：{image_output_path}")
         return
     
     all_notes.sort(key=lambda x: x['date_obj'], reverse=True)
 
+    print_section("✅ 转换结果")
     output_md_path = os.path.join(output_dir, markdown_filename)
+
     if generate_markdown(all_notes, output_md_path):
-        print(f"\n🎉 成功！所有笔记已合并到：{output_md_path}")
-        
-        # 如果没有图片且是特定年份，删除空的图片文件夹
-        has_images = contains_images(all_notes)
-        if not has_images and year_filter is not None:
-            if os.path.exists(image_output_path) and not os.listdir(image_output_path):
-                shutil.rmtree(image_output_path)
-                print(f"已删除空的图片目录：{image_output_path}")
+        print_info_line("输出文件", output_md_path, 'success')
+
+        # 显示统计信息
+        total_notes = len(all_notes)
+        total_images = count_images_in_notes(all_notes)
+        print_info_line("笔记总数", total_notes)
+        print_info_line("图片总数", total_images)
+
+        # 显示日期范围
+        if all_notes:
+            first_date = all_notes[-1]['date_obj'].strftime('%Y-%m-%d')
+            last_date = all_notes[0]['date_obj'].strftime('%Y-%m-%d')
+            print_info_line("日期范围", f"{first_date} 至 {last_date}")
+
+        # 显示输出目录内容
+        print_separator()
+        print_info_line("输出目录", output_dir, 'info')
+
+        # 检查输出目录中的文件
+        output_files = []
+        if os.path.exists(output_md_path):
+            output_files.append(f"📄 {os.path.basename(output_md_path)}")
+
+        # 检查图片文件夹
+        if os.path.exists(image_output_path):
+            image_files = os.listdir(image_output_path)
+            if image_files:
+                output_files.append(f"📁 {image_subdir_name}/ (包含 {len(image_files)} 个图片文件)")
+            else:
+                # 如果图片文件夹为空且是特定年份，删除它
+                if year_filter is not None:
+                    shutil.rmtree(image_output_path)
+                    print_info_line("清理", "已删除空的图片目录", 'info')
+                else:
+                    output_files.append(f"📁 {image_subdir_name}/ (空文件夹)")
+
+        if output_files:
+            print_info_line("生成内容", output_files, 'success')
+        else:
+            print_info_line("生成内容", "无", 'warning')
     else:
-        print(f"\n❌ 错误：生成 Markdown 文件失败。")
+        print_info_line("结果", "生成 Markdown 文件失败", 'error')
         # 如果生成失败，清理可能创建的目录
         shutil.rmtree(output_dir, ignore_errors=True)
+
+    print_section_end()
 
 
 if __name__ == '__main__':

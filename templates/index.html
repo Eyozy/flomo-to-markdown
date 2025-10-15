@@ -33,9 +33,9 @@
             {% endif %}
         {% endwith %}
         <form method="post" enctype="multipart/form-data" id="convert-form">
-            <div class="upload-area" role="button">
+            <div class="upload-area">
                 <div class="upload-icon">📁</div>
-                <label for="file" class="upload-label" aria-label="选择文件">选择文件</label>
+                <div class="upload-label">选择文件</div>
                 <p class="upload-hint">支持 .html, .htm 或 .zip 文件</p>
                 <div id="file-name" class="selected-file" style="display: none;"></div>
                 <input type="file" id="file" name="file" accept=".html,.htm,.zip" required>
@@ -43,7 +43,13 @@
             
             <div id="loading-indicator" class="loading-text" style="display: none;">
                 <div class="loading-spinner"></div>
-                正在解析文件...
+                <span id="loading-text">正在解析文件...</span>
+                <div class="progress-bar-container" style="display: none; margin-top: 1rem;">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <span id="progress-text" class="progress-text">0%</span>
+                </div>
             </div>
             
             <div id="error-message" class="error-message" style="display: none;">

@@ -64,9 +64,20 @@ form {
     transition: border-color 0.2s, background 0.2s;
     cursor: pointer;
 }
-.upload-area:hover {
+.upload-area:hover,
+.upload-area.dragover {
     border-color: #007aff;
     background: #e8f4fd;
+    transform: scale(1.02);
+}
+
+.upload-area.dragover {
+    border-color: #0056b3;
+    background: #cce7ff;
+}
+
+.upload-area {
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 .upload-icon {
     font-size: clamp(1.8rem, 6vw, 2.5rem);
@@ -287,6 +298,11 @@ input[type="file"] {
     height: 100%;
     opacity: 0;
     cursor: pointer;
+    z-index: -1; /* 确保file input在upload-area之下 */
+}
+
+.upload-area {
+    position: relative; /* 确保upload-area有定位上下文 */
 }
 button {
     background: #007aff;
@@ -502,5 +518,74 @@ hr {
 
     .footer p {
         padding: 0 0.5rem;
+    }
+}
+
+/* 进度条样式 */
+.progress-bar-container {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007aff, #0056cc);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: #6e6e73;
+    margin-top: 0.5rem;
+    display: block;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .progress-bar-container {
+        max-width: 250px;
+    }
+
+    .progress-bar {
+        height: 4px;
+    }
+
+    .progress-text {
+        font-size: 0.7rem;
     }
 }
