@@ -101,6 +101,37 @@ form {
     word-break: break-all;
 }
 
+.export-mode-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.export-mode-label {
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+.export-mode-dropdown {
+    width: 100%;
+    max-width: 200px;
+    padding: 0.5rem;
+    border: 1px solid #e5e5e7;
+    border-radius: 8px;
+    background-color: #ffffff;
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    color: #1d1d1f;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.export-mode-dropdown:focus {
+    border-color: #007aff;
+}
+
 .year-selection {
     display: flex;
     flex-direction: column;
@@ -230,22 +261,6 @@ button:disabled:hover {
     background: #d2d2d7;
 }
 
-.loading-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #007aff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 .loading-text {
     display: flex;
     align-items: center;
@@ -255,41 +270,6 @@ button:disabled:hover {
     margin-top: 1rem;
 }
 
-.error-message {
-    background: #ffebee;
-    border: 1px solid #f44336;
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-top: 1rem;
-    color: #c62828;
-    font-size: clamp(0.75rem, 2vw, 0.85rem);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.error-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.success-message {
-    background: #e8f5e8;
-    border: 1px solid #4caf50;
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-top: 1rem;
-    color: #2e7d32;
-    font-size: clamp(0.75rem, 2vw, 0.85rem);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.success-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
 input[type="file"] {
     position: absolute;
     top: 0;
@@ -298,11 +278,11 @@ input[type="file"] {
     height: 100%;
     opacity: 0;
     cursor: pointer;
-    z-index: -1; /* 确保file input在upload-area之下 */
+    z-index: -1; /* 确保 file input 在 upload-area 之下 */
 }
 
 .upload-area {
-    position: relative; /* 确保upload-area有定位上下文 */
+    position: relative; /* 确保 upload-area 有定位上下文 */
 }
 button {
     background: #007aff;
@@ -587,5 +567,288 @@ hr {
 
     .progress-text {
         font-size: 0.7rem;
+    }
+}
+
+/* Toast 消息样式 */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    align-items: center;
+    width: auto;
+    max-width: 90%;
+}
+
+.toast {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12),
+                0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: auto;
+    min-width: 280px;
+    max-width: 450px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: auto;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+}
+
+.toast.success {
+    background: linear-gradient(135deg,
+        rgba(232, 245, 232, 0.95),
+        rgba(240, 249, 240, 0.95));
+    border-color: rgba(76, 175, 80, 0.3);
+    color: #2e7d32;
+}
+
+.toast.error {
+    background: linear-gradient(135deg,
+        rgba(255, 235, 238, 0.95),
+        rgba(255, 241, 242, 0.95));
+    border-color: rgba(244, 67, 54, 0.3);
+    color: #c62828;
+}
+
+.toast.info {
+    background: linear-gradient(135deg,
+        rgba(227, 242, 253, 0.95),
+        rgba(240, 248, 255, 0.95));
+    border-color: rgba(33, 150, 243, 0.3);
+    color: #1565c0;
+}
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    backdrop-filter: blur(8px);
+}
+
+.toast-message {
+    flex: 1;
+    word-break: break-word;
+    font-weight: 500;
+    min-width: 0;
+}
+
+.toast-close {
+    background: rgba(255, 255, 255, 0.6);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+}
+
+/* Toast 进度条 */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.3;
+    border-radius: 0 0 14px 14px;
+    transition: width linear;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .toast-container {
+        max-width: 400px;
+        min-width: 260px;
+    }
+
+    .toast {
+        padding: 13px 16px;
+        font-size: 14px;
+        min-width: 260px;
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .toast-container {
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 350px;
+        min-width: 240px;
+        width: calc(100% - 40px);
+    }
+
+    .toast {
+        padding: 12px 15px;
+        font-size: 13px;
+        gap: 10px;
+        min-width: 240px;
+        max-width: 350px;
+    }
+
+    .toast-icon {
+        font-size: 18px;
+        width: 22px;
+        height: 22px;
+    }
+
+    .toast-close {
+        font-size: 16px;
+        width: 22px;
+        height: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .toast-container {
+        top: 10px;
+        width: calc(100% - 20px);
+        min-width: 200px;
+        max-width: 300px;
+        gap: 8px;
+    }
+
+    .toast {
+        padding: 11px 14px;
+        font-size: 13px;
+        gap: 8px;
+        min-width: 200px;
+        max-width: 300px;
+    }
+
+    .toast-icon {
+        font-size: 16px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .toast-close {
+        font-size: 14px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .toast-progress {
+        height: 2px;
+    }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 360px) {
+    .toast-container {
+        top: 8px;
+        width: calc(100% - 16px);
+        min-width: 180px;
+        max-width: none;
+    }
+
+    .toast {
+        padding: 10px 12px;
+        font-size: 12px;
+        gap: 8px;
+        min-width: 180px;
+        max-width: none;
+    }
+
+    .toast-icon {
+        font-size: 14px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .toast-close {
+        font-size: 12px;
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .toast {
+        background: rgba(28, 28, 30, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+    }
+
+    .toast.success {
+        background: linear-gradient(135deg,
+            rgba(34, 51, 34, 0.95),
+            rgba(40, 60, 40, 0.95));
+        border-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .toast.error {
+        background: linear-gradient(135deg,
+            rgba(51, 34, 34, 0.95),
+            rgba(60, 40, 40, 0.95));
+        border-color: rgba(244, 67, 54, 0.3);
+    }
+
+    .toast.info {
+        background: linear-gradient(135deg,
+            rgba(34, 47, 63, 0.95),
+            rgba(40, 56, 75, 0.95));
+        border-color: rgba(33, 150, 243, 0.3);
+    }
+
+    .toast-icon,
+    .toast-close {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .toast-close:hover {
+        background: rgba(255, 255, 255, 0.2);
     }
 }

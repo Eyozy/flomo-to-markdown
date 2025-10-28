@@ -99,15 +99,11 @@ async function parseYearsFromFile(file) {
     const progressContainer = document.querySelector('.progress-bar-container');
     const progressFill = document.getElementById('progress-fill');
     const progressText = document.getElementById('progress-text');
-    const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message');
     const yearSelection = document.getElementById('year-selection');
     const yearFilter = document.getElementById('year-filter');
     const convertBtn = document.getElementById('convert-btn');
-    const errorText = document.getElementById('error-text');
 
-    // 隐藏所有消息和年份选择
-    hideAllMessages();
+    // 隐藏年份选择
     yearSelection.style.display = 'none';
 
     // 显示加载动画和进度条
@@ -143,8 +139,11 @@ async function parseYearsFromFile(file) {
         }, 500);
 
         if (result.success && result.years) {
-            // 显示成功消息
-            successMessage.style.display = 'flex';
+            // 显示成功 toast 消息
+            showToast(`文件解析成功！发现 ${result.years.length} 个年份的笔记`, 'success', 4000);
+
+            // 显示导出模式选择器
+            document.getElementById('export-mode-selection').style.display = 'block';
 
             // 生成年份选项
             let options = '<option value="all">全部</option>';
@@ -157,32 +156,17 @@ async function parseYearsFromFile(file) {
             // 启用转换按钮
             convertBtn.disabled = false;
             convertBtn.textContent = '转换并下载';
-
-            // 3 秒后隐藏成功消息
-            setTimeout(() => {
-                successMessage.classList.add('fade-out');
-                setTimeout(() => {
-                    successMessage.style.display = 'none';
-                    successMessage.classList.remove('fade-out');
-                }, 300);
-            }, 3000);
         } else {
-            // 显示错误消息
-            errorText.textContent = result.error || '解析文件时发生错误';
-            errorMessage.style.display = 'flex';
+            // 显示错误 toast 消息
+            showToast(result.error || '解析文件时发生错误', 'error', 5000);
 
             // 重置转换按钮状态
             convertBtn.disabled = false;
             convertBtn.textContent = '转换并下载';
 
-            // 5 秒后隐藏错误消息并重置文件选择
+            // 5 秒后重置文件选择
             setTimeout(() => {
-                errorMessage.classList.add('fade-out');
-                setTimeout(() => {
-                    errorMessage.style.display = 'none';
-                    errorMessage.classList.remove('fade-out');
-                    resetFileSelection();
-                }, 300);
+                resetFileSelection();
             }, 5000);
         }
     } catch (error) {
@@ -193,22 +177,16 @@ async function parseYearsFromFile(file) {
         progressContainer.style.display = 'none';
         updateProgress(0, '');
 
-        // 显示网络错误
-        errorText.textContent = '网络错误，请重试';
-        errorMessage.style.display = 'flex';
+        // 显示网络错误 toast 消息
+        showToast('网络错误，请重试', 'error', 5000);
 
         // 重置转换按钮状态
         convertBtn.disabled = false;
         convertBtn.textContent = '转换并下载';
 
-        // 5 秒后隐藏错误消息并重置文件选择
+        // 5 秒后重置文件选择
         setTimeout(() => {
-            errorMessage.classList.add('fade-out');
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-                errorMessage.classList.remove('fade-out');
-                resetFileSelection();
-            }, 300);
+            resetFileSelection();
         }, 5000);
     }
 }
@@ -231,51 +209,33 @@ function updateProgress(percent, text) {
     }
 }
 
-function hideAllMessages() {
-    document.getElementById('loading-indicator').style.display = 'none';
-    document.getElementById('error-message').style.display = 'none';
-    document.getElementById('success-message').style.display = 'none';
-}
-
 function resetFileSelection() {
     const fileInput = document.getElementById('file');
     const fileNameDiv = document.getElementById('file-name');
     const yearSelection = document.getElementById('year-selection');
+    const exportModeSelection = document.getElementById('export-mode-selection');
     const convertBtn = document.getElementById('convert-btn');
 
     // 重置文件输入
     fileInput.value = '';
     fileNameDiv.style.display = 'none';
     yearSelection.style.display = 'none';
+    exportModeSelection.style.display = 'none';
     convertBtn.disabled = true;
     convertBtn.textContent = '转换并下载';
 
-    // 隐藏所有消息
-    hideAllMessages();
+    // 隐藏加载指示器
+    document.getElementById('loading-indicator').style.display = 'none';
 }
 
-function showError(message) {
-    hideAllMessages();
-    const errorMessage = document.getElementById('error-message');
-    const errorText = document.getElementById('error-text');
-
-    errorText.textContent = message;
-    errorMessage.style.display = 'flex';
-
-    // 5 秒后自动隐藏
-    setTimeout(() => {
-        errorMessage.style.display = 'none';
-    }, 5000);
-}
-
-// 页面加载时检查是否有Flash消息
+// 页面加载时检查是否有 Flash 消息
 document.addEventListener('DOMContentLoaded', function() {
     const alertDiv = document.querySelector('.alert');
     if (alertDiv) {
         const message = alertDiv.textContent.trim();
-        // 隐藏Flash消息，用我们的错误显示代替
+        // 隐藏 Flash 消息，用 toast 代替
         alertDiv.style.display = 'none';
-        showError(message);
+        showToast(message, 'error', 5000);
     }
 });
 
@@ -287,14 +247,144 @@ document.getElementById('convert-form').addEventListener('submit', function(e) {
     // 如果没有选择文件，阻止提交
     if (!fileInput.files[0]) {
         e.preventDefault();
-        showError('请先选择文件');
+        showToast('请先选择文件', 'error');
         return;
     }
 
     // 如果显示了年份选择但没有选择年份，提示用户
     if (yearSelection.style.display === 'block' && !document.getElementById('year-filter').value) {
         e.preventDefault();
-        showError('请选择年份');
+        showToast('请选择年份', 'error');
         return;
     }
 });
+
+// ========== Toast 消息系统 ==========
+
+/**
+ * 显示 Toast 消息
+ * @param {string} message - 消息内容
+ * @param {string} type - 消息类型：'success', 'error', 'info'
+ * @param {number} duration - 显示时长（毫秒），默认 5000ms
+ * @returns {Object} Toast 对象，包含手动关闭的方法
+ */
+function showToast(message, type = 'info', duration = 5000) {
+    // 创建 toast 元素
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    // 设置图标
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+    };
+
+    // 创建 toast 内容
+    toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || icons.info}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" aria-label="关闭">×</button>
+        <div class="toast-progress"></div>
+    `;
+
+    // 添加到容器
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+
+    // 显示动画
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    // 设置进度条动画
+    const progressBar = toast.querySelector('.toast-progress');
+    if (progressBar && duration > 0) {
+        progressBar.style.transition = `width ${duration}ms linear`;
+        requestAnimationFrame(() => {
+            progressBar.style.width = '0%';
+        });
+    }
+
+    // 关闭按钮事件
+    const closeBtn = toast.querySelector('.toast-close');
+    const closeToast = () => {
+        hideToast(toast);
+    };
+
+    closeBtn.addEventListener('click', closeToast);
+
+    // 自动关闭
+    let timeoutId;
+    if (duration > 0) {
+        timeoutId = setTimeout(() => {
+            hideToast(toast);
+        }, duration);
+    }
+
+    // 返回 toast 对象，包含手动关闭方法
+    return {
+        element: toast,
+        close: closeToast,
+        updateMessage: (newMessage) => {
+            const messageEl = toast.querySelector('.toast-message');
+            if (messageEl) {
+                messageEl.textContent = newMessage;
+            }
+        },
+        updateType: (newType) => {
+            toast.className = `toast ${newType}`;
+            const iconEl = toast.querySelector('.toast-icon');
+            if (iconEl) {
+                iconEl.textContent = icons[newType] || icons.info;
+            }
+        }
+    };
+}
+
+/**
+ * 隐藏 Toast 消息
+ * @param {HTMLElement} toast - Toast 元素
+ */
+function hideToast(toast) {
+    if (!toast || !toast.parentNode) return;
+
+    toast.classList.add('hide');
+
+    // 动画结束后移除元素
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+/**
+ * 清除所有 Toast 消息
+ */
+function clearAllToasts() {
+    const container = document.getElementById('toast-container');
+    const toasts = container.querySelectorAll('.toast');
+    toasts.forEach(toast => hideToast(toast));
+}
+
+/**
+ * 更新现有的 showError 函数以使用 Toast
+ */
+function showErrorWithToast(message) {
+    showToast(message, 'error', 5000);
+}
+
+/**
+ * 更新现有的 showSuccess 函数以使用 Toast
+ */
+function showSuccessWithToast(message) {
+    showToast(message, 'success', 3000);
+}
+
+/**
+ * 显示信息消息
+ */
+function showInfoWithToast(message) {
+    showToast(message, 'info', 4000);
+}

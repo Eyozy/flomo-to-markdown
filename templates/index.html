@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>flomo to Markdown</title>
-    <meta name="description" content="flomo 笔记一键转 Markdown，支持 HTML/ZIP 上传，自动处理图片，免费在线工具，快速归档你的笔记！">
+    <meta name="description" content="flomo 笔记一键转 Markdown 归档，支持多种导出模式、HTML/ZIP 上传，自动处理图片，免费在线工具，快速归档你的笔记！">
     <meta name="keywords" content="flomo, markdown, 笔记转换, HTML to MD, 网页工具">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="flomo to Markdown">
-    <meta property="og:description" content="flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
+    <meta property="og:description" content="flomo 笔记一键转 Markdown 归档，支持多种导出模式，免费的在线工具，快速归档你的笔记！">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://flomo-to-markdown.vercel.app/">
     <meta property="og:image" content="https://flomo-to-markdown.vercel.app/static/opengraph.png">
@@ -17,21 +17,15 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://flomo-to-markdown.vercel.app/">
     <meta name="twitter:title" content="flomo to Markdown">
-    <meta name="twitter:description" content="flomo 笔记一键转 Markdown，免费的在线工具，快速归档你的笔记！">
+    <meta name="twitter:description" content="flomo 笔记一键转 Markdown 归档，支持多种导出模式，免费的在线工具，快速归档你的笔记！">
     <meta name="twitter:image" content="https://flomo-to-markdown.vercel.app/static/opengraph.png">
 
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>flomo to Markdown</h1>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="alert">
-                    {{ messages[0] }}
-                </div>
-            {% endif %}
-        {% endwith %}
         <form method="post" enctype="multipart/form-data" id="convert-form">
             <div class="upload-area">
                 <div class="upload-icon">📁</div>
@@ -52,16 +46,15 @@
                 </div>
             </div>
             
-            <div id="error-message" class="error-message" style="display: none;">
-                <span class="error-icon">❌</span>
-                <span id="error-text">解析失败，请检查文件格式</span>
+            <div id="export-mode-selection" class="export-mode-selection" style="display: none;">
+                <label for="export-mode" class="export-mode-label">导出模式：</label>
+                <select id="export-mode" name="export_mode" class="export-mode-dropdown">
+                    <option value="single_file">单一合并文件</option>
+                    <option value="single_memos">单条 memo 文件</option>
+                    <option value="yearly_archives">按年归档</option>
+                </select>
             </div>
-            
-            <div id="success-message" class="success-message" style="display: none;">
-                <span class="success-icon">✅</span>
-                <span>文件解析成功！</span>
-            </div>
-            
+
             <div id="year-selection" class="year-selection" style="display: none;">
                 <label for="year-filter" class="year-label">选择年份：</label>
                 <select id="year-filter" name="year_filter" class="year-dropdown">
@@ -76,9 +69,15 @@
             <ul>
                 <li>上传单个 HTML/HTM 文件或 ZIP 文件，最大上传 50MB</li>
                 <li>ZIP 文件需包含 HTML 和可选 'file' 文件夹（含图片）</li>
+                <li>支持三种导出模式：单一合并文件、单条 memo 文件、按年归档</li>
+                <li>单条 memo 和按年归档模式会生成压缩包下载，自动包含相关图片</li>
             </ul>
         </div>
     </div>
+
+    <!-- Toast 消息容器 -->
+    <div id="toast-container" class="toast-container"></div>
+
     <footer class="footer">
         <p>&copy; <span id="year">2025</span> | Reserved by Eyozy | <a href="https://github.com/Eyozy/flomo-to-markdown" target="_blank" rel="noopener">Source Code</a></p>
     </footer>
