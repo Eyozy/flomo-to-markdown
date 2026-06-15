@@ -18,7 +18,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'flomo_web_dev_key')  # Use env va
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
 ALLOWED_EXTENSIONS = {'html', 'htm', 'zip'}
 
-# Rate limiting (5 requests per minute per IP)
+# 速率限制（每 IP 每分钟 5 次请求）
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -42,19 +42,19 @@ def handle_file_upload(file, source_dir):
 
     try:
         if is_html:
-            # Single HTML file
+            # 单个 HTML 文件
             html_path = os.path.join(source_dir, filename)
             file.save(html_path)
             return True, None
         elif filename.lower().endswith('.zip'):
-            # ZIP file
+            # ZIP 文件
             zip_path = os.path.join(source_dir, filename)
             file.save(zip_path)
             try:
                 with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                     zip_ref.extractall(source_dir)
                 logger.info('ZIP extracted successfully')
-                # Remove the zip file itself
+                # 删除 zip 文件本身
                 os.remove(zip_path)
                 return True, None
             except zipfile.BadZipFile:
@@ -90,7 +90,7 @@ def parse_years():
             if not success:
                 return {'error': error_msg}, 400
 
-            # Get available years
+            # 获取可用年份
             years = get_available_years(source_dir)
 
             if years:

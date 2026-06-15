@@ -16,8 +16,8 @@ class ExportMode(Enum):
     SINGLE_MEMOS = "single_memos"      # 单条 memo 导出
     YEARLY_ARCHIVES = "yearly_archives"    # 按年归档
 
-# --- HTML 解析规则 (Advanced Configuration) ---
-# --- 一般无需修改，除非 flomo 的导出结构发生变化 ---
+    # --- HTML 解析规则（高级配置）---
+    # --- 一般无需修改，除非 flomo 的导出结构发生变化 ---
 HTML_CONFIG = {
     'note_container': 'div.memo',
     'date_element': 'div.time',
@@ -254,7 +254,7 @@ def convert_notes(source_dir, output_dir=None, markdown_filename=MARKDOWN_FILENA
         logger.error(f"源文件夹 '{source_dir}' 不存在。")
         return None
 
-    # Basic validation: Check for Flomo structure in first HTML file
+    # 基础验证：检查第一个 HTML 文件是否包含 Flomo 结构
     html_files = glob.glob(os.path.join(source_dir, '*.html')) + glob.glob(os.path.join(source_dir, '*.htm'))
     if html_files:
         try:
