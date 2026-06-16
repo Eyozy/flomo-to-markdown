@@ -1,7 +1,5 @@
 import sys
 import os
-import json
-import argparse
 import glob
 import unicodedata
 from datetime import datetime
@@ -9,20 +7,13 @@ from bs4 import BeautifulSoup
 
 from converter import ExportMode, convert_notes, get_available_years
 
-# CLI 增强模块导入
 try:
-    from cli_utils import success, warning, error, info, highlight, print_header, print_section, print_section_end, print_info_line
-    CLI_ENHANCED = True
+    from cli_utils import success, warning, error, info, print_info_line
 except ImportError:
-    CLI_ENHANCED = False
     def success(msg): print(f"✅ {msg}")
     def warning(msg): print(f"⚠️  {msg}")
     def error(msg): print(f"❌ {msg}")
     def info(msg): print(f"ℹ️  {msg}")
-    def highlight(msg): print(msg); return msg
-    def print_header(title): print("=" * 50); print(title); print("=" * 50)
-    def print_section(title): print(f"\n--- {title} ---")
-    def print_section_end(): print()
     def print_info_line(label, value, color='info'): print(f"{label}: {value}")
 
 try:
@@ -31,30 +22,8 @@ try:
 except ImportError:
     HAS_TUI = False
 
-# --- 配置项 ---
-CONFIG_PATH = os.path.expanduser("~/.flomo-converter.json")
-DEFAULT_CONFIG = {
-    "source_dir": "flomo",
-    "output_dir": "converted_notes",
-    "enable_colors": True,
-    "show_progress": True,
-    "image_subdir_name": "flomo-images",
-}
-
-def _load_config():
-    if os.path.exists(CONFIG_PATH):
-        try:
-            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-                return {**DEFAULT_CONFIG, **json.load(f)}
-        except (json.JSONDecodeError, IOError):
-            pass
-    return DEFAULT_CONFIG.copy()
-
-def load_application_config():
-    config = _load_config()
-    return config['source_dir'], config['output_dir']
-
-SOURCE_DIR, OUTPUT_DIR = load_application_config()
+SOURCE_DIR = 'flomo'
+OUTPUT_DIR = 'converted_notes'
 
 HTML_CONFIG = {
     'note_container': 'div.memo',
@@ -70,7 +39,6 @@ CONFIRM = 'CONFIRM'
 
 # 统一的图标风格 —— 纯血原生 SMP Emoji，解决底层字符长度不一导致的排版错位问题
 ICO_CONVERT  = "🚀"
-ICO_INFO     = "📊"
 ICO_YEARS    = "📅"
 ICO_QUIT     = "🛑"
 ICO_BACK     = "🔙"
@@ -158,27 +126,6 @@ def _menu(entries, title="", default=0):
         cycle_cursor=True,
         clear_screen=True,
     )
-
-def _classify(idx, entries, has_back=True):
-    """分类菜单选择结果：正常选项索引 / BACK / QUIT
-    entries 末尾固定是 [返回, 退出] 或 [退出]（无 back）
-    """
-    nav_count = 1 + (1 if has_back else 0)
-    nav_start = len(entries) - nav_count
-
-    if idx is None:
-        return QUIT
-    if idx >= nav_start:
-        if has_back and idx == nav_start:
-            return BACK
-        return QUIT
-    return idx
-
-def _nav(has_back=True):
-    """生成导航条目，图标与其他选项统一"""
-    items = [f"{ICO_BACK}  返回上一步"] if has_back else []
-    items.append(f"{ICO_QUIT}  退出")
-    return items
 
 # ========== 文件信息展示 ==========
 
@@ -362,9 +309,9 @@ def tui_select_export_mode(year):
 
 def run_tui_flow():
     if not HAS_TUI:
-        warning("未安装 simple-term-menu")
+        error("需要 simple-term-menu 才能运行")
         info("安装: pip install simple-term-menu")
-        return run_fallback_flow()
+        sys.exit(1)
 
     dirs = _scan_flomo_dirs()
     source = dirs[0] if dirs else None
@@ -438,154 +385,29 @@ def run_tui_flow():
                 input("按回车返回主界面...")
                 state = 'DASHBOARD'
 
-def run_fallback_flow():
-    source = input(f"源目录路径（回车默认 '{SOURCE_DIR}'）：").strip() or SOURCE_DIR
-    if not os.path.isdir(source):
-        error(f"目录不存在: {source}")
-        return
-
-    years = get_available_years(source)
-    if years:
-        info(f"检测到年份: {', '.join(map(str, years))}")
-        year_input = input("选择年份（回车=全部）：").strip()
-        try:
-            year = int(year_input) if year_input else None
-        except ValueError:
-            warning("无效年份，将导出全部")
-            year = None
-    else:
-        warning("未检测到年份信息")
-        year = None
-
-    mode_names = {1: ExportMode.SINGLE_FILE, 2: ExportMode.SINGLE_MEMOS, 3: ExportMode.YEARLY_ARCHIVES}
-    print("导出模式：1=单一文件 2=单条导出 3=按年归档")
-    mode_input = input("选择导出模式（回车=单一文件）：").strip()
-    try:
-        mode = mode_names.get(int(mode_input), ExportMode.SINGLE_FILE) if mode_input else ExportMode.SINGLE_FILE
-    except ValueError:
-        warning("无效选项，使用单一文件模式")
-        mode = ExportMode.SINGLE_FILE
-
-    result_dir = convert_notes(source_dir=source, output_dir=OUTPUT_DIR, year_filter=year, export_mode=mode)
-    if result_dir:
-        success("转换成功！")
-        print_info_line("输出目录", result_dir, 'success')
-    else:
-        error("转换失败。")
-
-# ========== argparse 流程 ==========
-
 def check_python_version():
     if sys.version_info < (3, 6):
         error("此脚本需要 Python 3.6+")
         info(f"当前版本: {sys.version.split(' ')[0]}")
         sys.exit(1)
 
-def print_file_info(source_dir):
-    if not os.path.isdir(source_dir):
-        error(f"源文件夹不存在: {source_dir}")
-        return
-
-    html_files, all_years, year_counts, total = _get_year_stats(source_dir)
-    if not html_files:
-        error("未找到 HTML 文件")
-        return
-
-    print_info_line("源目录", source_dir)
-    print_info_line("HTML 文件数量", len(html_files))
-
-    if all_years:
-        print_info_line("包含年份", ", ".join(map(str, all_years)))
-        print_info_line("年份范围", f"{all_years[0]} - {all_years[-1]}")
-        print("\n📋 各年份笔记统计：")
-        for y in all_years:
-            info(f"   {y}年：{year_counts[y]} 条笔记")
-    else:
-        warning("未检测到有效的年份信息")
-
-def run_argparse_flow(args):
-    if args.info:
-        print_section("📋 文件信息查询")
-        print_file_info(args.source)
-        print_section_end()
-        return
-
-    if args.list_years:
-        print_section("📅 年份列表查询")
-        all_years = get_available_years(args.source)
-        if all_years:
-            print_info_line("可用年份", ", ".join(map(str, all_years)), 'success')
-        else:
-            warning("未找到年份信息")
-        print_section_end()
-        return
-
-    year_filter = args.year
-    print_section("🚀 开始转换")
-    print_info_line("导出模式", args.export_mode, 'info')
-    print_info_line("源目录", args.source, 'info')
-    print_info_line("输出目录", args.output, 'info')
-    if year_filter:
-        print_info_line("年份过滤", str(year_filter), 'info')
-
-    result_dir = convert_notes(
-        source_dir=args.source,
-        output_dir=args.output,
-        year_filter=year_filter,
-        export_mode=ExportMode(args.export_mode),
-    )
-
-    print_section("✅ 转换结果")
-    if result_dir:
-        success("转换成功！")
-        print_info_line("输出目录", result_dir, 'success')
-        try:
-            output_content = os.listdir(result_dir)
-            if output_content:
-                print_info_line("生成内容", [f"📁 {item}" if os.path.isdir(os.path.join(result_dir, item)) else f"📄 {item}" for item in output_content], 'success')
-        except FileNotFoundError:
-            warning("无法读取输出目录")
-    else:
-        error("转换失败")
-    print_section_end()
-
 def main():
     check_python_version()
 
-    parser = argparse.ArgumentParser(
-        prog='flomo_converter.py',
-        description='flomo HTML to Markdown CLI',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-使用示例：
-  python flomo_converter.py                          # 交互式模式
-  python flomo_converter.py --year 2025              # 转换 2025 年
-  python flomo_converter.py --list-years             # 列出可用年份
-  python flomo_converter.py --info                   # 详细统计
-  python flomo_converter.py --export-mode single_memos --year 2023
-  python flomo_converter.py --source ./data --output ./result
-        """
-    )
-    parser.add_argument('--source', type=str, default=SOURCE_DIR, help=f'源文件夹 (默认: {SOURCE_DIR})')
-    parser.add_argument('--output', type=str, default=OUTPUT_DIR, help=f'输出文件夹 (默认: {OUTPUT_DIR})')
-    parser.add_argument('--year', type=int, metavar='YEAR', help='只转换指定年份')
-    parser.add_argument('--list-years', action='store_true', help='列出所有年份')
-    parser.add_argument('--info', action='store_true', help='显示详细统计')
-    parser.add_argument('--export-mode', type=str, choices=[e.value for e in ExportMode], default=ExportMode.SINGLE_FILE.value, help='导出模式')
+    if len(sys.argv) > 1:
+        interpreter = os.path.basename(sys.executable)
+        script = os.path.basename(sys.argv[0])
+        print("┌──────────────────────┐")
+        print("│ flomo to Markdown    │")
+        print("└──────────────────────┘")
+        print()
+        print("用法")
+        print(f"  {interpreter} {script}")
+        print()
+        print("直接运行即可进入交互式界面，无需任何参数。")
+        sys.exit(1)
 
-    args = parser.parse_args()
-
-    has_explicit_args = bool(
-        args.year or args.list_years or args.info
-        or args.source != SOURCE_DIR
-        or args.output != OUTPUT_DIR
-        or args.export_mode != ExportMode.SINGLE_FILE.value
-    )
-
-    if has_explicit_args:
-        run_argparse_flow(args)
-    else:
-        run_tui_flow()
+    run_tui_flow()
 
 if __name__ == '__main__':
     main()

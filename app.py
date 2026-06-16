@@ -8,7 +8,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequest
-from converter import convert_notes, IMAGE_SUBDIR_NAME, MARKDOWN_FILENAME, get_available_years, contains_images, ExportMode
+from converter import convert_notes, IMAGE_SUBDIR_NAME, MARKDOWN_FILENAME, get_available_years, ExportMode
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

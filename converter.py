@@ -200,13 +200,6 @@ def contains_images(notes):
             return True
     return False
 
-def extract_years_from_notes(notes):
-    """从笔记列表中提取所有年份"""
-    years = set()
-    for note in notes:
-        years.add(note['date_obj'].year)
-    return sorted(list(years))
-
 def parse_html_file_for_years(file_path):
     """解析 HTML 文件，只提取年份信息"""
     try:
